@@ -1,23 +1,43 @@
-var httpURL = "127.0.0.1:8081"
-var httpGetName = "/getname"
-var htmlDomInputID = "inputNameID"
+const httpURL = "http://localhost"
+const httpGetName = "/getname"
+const htmlDomInputID = "inputNameID"
 
 function OnStartGameBtnClick() {
     WebSocketTest();
 }
 
+function OnChangeNameBtnClick() {
+    GetRandName()
+}
+
 function GetRandName() {
-    $.ajax({
+    /*$.ajax({
         url: httpURL + httpGetName,
         type: 'GET',
-        dataType: 'text',
+        headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Content-Type": "application/json"
+        },
+        crossDomain:true,
         success: function (data) {
             UpdateNameInput(htmlDomInputID, data);
         },
         error: function () {
             console.log("Get Rand Name Failed!");
         }
-    });
+    });*/
+
+    try {
+        var xhttp = new XMLHttpRequest();
+        xhttp.open("GET", httpURL + httpGetName, false);
+        xhttp.setRequestHeader("Content-type", "text/html");
+        xhttp.send();
+        //var response = JSON.parse(xhttp.response);
+        UpdateNameInput(htmlDomInputID, xhttp.response);
+        alert(xhttp.response);
+    } catch (error) {
+        alert(error.message);
+    }
 }
 
 function UpdateNameInput(id, name) {
