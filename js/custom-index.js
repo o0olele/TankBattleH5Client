@@ -2,60 +2,21 @@ const httpURL = "http://localhost"
 const httpGetName = "/getname"
 const htmlDomInputID = "inputNameID"
 
-function OnStartGameBtnClick() {
-    WebSocketTest();
-}
 
-function OnChangeNameBtnClick() {
-    GetRandName()
-}
+/****************************************************************************************************************************
+  ws
+ ****************************************************************************************************************************/
+var ws
 
-function GetRandName() {
-    /*$.ajax({
-        url: httpURL + httpGetName,
-        type: 'GET',
-        headers: {
-            "Access-Control-Allow-Origin": "*",
-            "Content-Type": "application/json"
-        },
-        crossDomain:true,
-        success: function (data) {
-            UpdateNameInput(htmlDomInputID, data);
-        },
-        error: function () {
-            console.log("Get Rand Name Failed!");
-        }
-    });*/
-
-    try {
-        var xhttp = new XMLHttpRequest();
-        xhttp.open("GET", httpURL + httpGetName, false);
-        xhttp.setRequestHeader("Content-type", "text/html");
-        xhttp.send();
-        //var response = JSON.parse(xhttp.response);
-        UpdateNameInput(htmlDomInputID, xhttp.response);
-        alert(xhttp.response);
-    } catch (error) {
-        alert(error.message);
-    }
-}
-
-function UpdateNameInput(id, name) {
-    var dom = document.getElementById(id);
-    dom.value = name;
-}
-
-function WebSocketTest() {
+function WebSocketStart() {
     if ("WebSocket" in window) {
-        alert("您的浏览器支持 WebSocket!");
-
+        console.log("WebSocket Available!")
         // 打开一个 web socket
-        var ws = new WebSocket("ws://localhost:9001");
+        ws = new WebSocket("ws://localhost:9001");
 
         ws.onopen = function () {
             // Web Socket 已连接上，使用 send() 方法发送数据
-            ws.send("发送数据");
-            alert("数据发送中...");
+            //ws.send("发送数据");
         };
 
         ws.onmessage = function (evt) {
@@ -65,11 +26,252 @@ function WebSocketTest() {
 
         ws.onclose = function () {
             // 关闭 websocket
-            alert("连接已关闭...");
+            console.log("连接已关闭...");
         };
     }
     else {
         // 浏览器不支持 WebSocket
-        alert("您的浏览器不支持 WebSocket!");
+        console.log("WebSocket not available!");
     }
+}
+
+function SendMoveMsg(direct) {
+    var h = concatenate(Uint8Array, getUint8Bytes(0), getUint8Bytes(0), getUint8Bytes(1), getUint8Bytes(0));
+    h.reverse()
+    var head = concatenate(Uint8Array, getUint16Bytes(1), getUint16Bytes(8));
+    head.reverse();
+    var value = getUint32Bytes(direct);
+    value.reverse();
+
+    var packet = concatenate(Uint8Array, h, head, value);
+    ws.send(packet);
+    console.log(packet);
+}
+
+
+function test() {
+    var bytes1 = getUint16Bytes(1);
+    var bytes2 = getUint16Bytes(2);
+    alert(concatenate(Uint8Array, bytes1, bytes2, bytes2));
+    alert(toUint16(bytes));
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/****************************************************************************************************************************
+  http
+ ****************************************************************************************************************************/
+function GetRandName() {
+    $.ajax({
+        url: httpURL + httpGetName,
+        type: 'GET',
+        data: { "DeviceId": "sgdgsd24sf", "Ip": "sd4f5sd4f" },
+        success: function (data) {
+            console.log(data)
+            UpdateNameInput(htmlDomInputID, data.id);
+        },
+        error: function () {
+            console.log("Get Rand Name Failed!");
+        }
+    });
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/****************************************************************************************************************************
+  nomal event
+ ****************************************************************************************************************************/
+function OnStartGameBtnClick() {
+    WebSocketStart()
+}
+
+function OnChangeNameBtnClick() {
+    GetRandName()
+}
+
+$(document).keydown(function (event) {
+    if (event.keyCode == 13) {
+        console.log("you pressed enter!")
+    } else if (event.keyCode == 87) {
+        SendMoveMsg(0); // w
+    } else if (event.keyCode == 68) {
+        SendMoveMsg(90); // d
+    } else if (event.keyCode == 83) {
+        SendMoveMsg(180); // s
+    } else if (event.keyCode == 65) {
+        SendMoveMsg(270); // a
+    }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/****************************************************************************************************************************
+  nomal view
+ ****************************************************************************************************************************/
+
+function UpdateNameInput(id, name) {
+    var dom = document.getElementById(id);
+    dom.value = name;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/****************************************************************************************************************************
+  common
+ ****************************************************************************************************************************/
+
+function concatenate(resultConstructor, ...arrays) {
+    let totalLength = 0;
+    for (let arr of arrays) {
+        totalLength += arr.length;
+    }
+    let result = new resultConstructor(totalLength);
+    let offset = 0;
+    for (let arr of arrays) {
+        result.set(arr, offset);
+        offset += arr.length;
+    }
+    return result;
+}
+
+//构建一个视图，把字节数组写到缓存中，索引从0开始，大端字节序
+function getView(bytes) {
+    var view = new DataView(new ArrayBuffer(bytes.length));
+    for (var i = 0; i < bytes.length; i++) {
+        view.setUint8(i, bytes[i]);
+    }
+    return view;
+}
+//将字节数组转成有符号的8位整型，大端字节序
+function toInt8(bytes) {
+    return getView(bytes).getInt8();
+}
+//将字节数组转成无符号的8位整型，大端字节序
+function toUint8(bytes) {
+    return getView(bytes).getUint8();
+}
+//将字节数组转成有符号的16位整型，大端字节序
+function toInt16(bytes) {
+    return getView(bytes).getInt16();
+}
+//将字节数组转成无符号的16位整型，大端字节序
+function toUint16(bytes) {
+    return getView(bytes).getUint16();
+}
+//将字节数组转成有符号的32位整型，大端字节序
+function toInt32(bytes) {
+    return getView(bytes).getInt32();
+}
+//将字节数组转成无符号的32位整型，大端字节序
+function toUint32(bytes) {
+    return getView(bytes).getUint32();
+}
+//将字节数组转成32位浮点型，大端字节序
+function toFloat32(bytes) {
+    return getView(bytes).getFloat32();
+}
+//将字节数组转成64位浮点型，大端字节序
+function toFloat64(bytes) {
+    return getView(bytes).getFloat64();
+}
+
+//将数值写入到视图中，获得其字节数组，大端字节序
+function getUint8Array(len, setNum) {
+    var buffer = new ArrayBuffer(len);  //指定字节长度
+    setNum(new DataView(buffer));  //根据不同的类型调用不同的函数来写入数值
+    return new Uint8Array(buffer); //创建一个字节数组，从缓存中拿取数据
+}
+//得到一个8位有符号整型的字节数组，大端字节序
+function getInt8Bytes(num) {
+    return getUint8Array(1, function (view) { view.setInt8(0, num); })
+}
+//得到一个8位无符号整型的字节数组，大端字节序
+function getUint8Bytes(num) {
+    return getUint8Array(1, function (view) { view.setUint8(0, num); })
+}
+//得到一个16位有符号整型的字节数组，大端字节序
+function getInt16Bytes(num) {
+    return getUint8Array(2, function (view) { view.setInt16(0, num); })
+}
+//得到一个16位无符号整型的字节数组，大端字节序
+function getUint16Bytes(num) {
+    return getUint8Array(2, function (view) { view.setUint16(0, num); })
+}
+//得到一个32位有符号整型的字节数组，大端字节序
+function getInt32Bytes(num) {
+    return getUint8Array(4, function (view) { view.setInt32(0, num); })
+}
+//得到一个32位无符号整型的字节数组，大端字节序
+function getUint32Bytes(num) {
+    return getUint8Array(4, function (view) { view.setUint32(0, num); })
+}
+//得到一个32位浮点型的字节数组，大端字节序
+function getFloat32Bytes(num) {
+    return getUint8Array(4, function (view) { view.setFloat32(0, num); })
+}
+//得到一个64位浮点型的字节数组，大端字节序
+function getFloat64Bytes(num) {
+    return getUint8Array(8, function (view) { view.setFloat64(0, num); })
 }
