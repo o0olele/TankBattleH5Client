@@ -114,11 +114,12 @@ function GetRandName() {
   nomal event
  ****************************************************************************************************************************/
 function OnStartGameBtnClick() {
-    WebSocketStart()
+    WebSocketStart();
+    location.href="game.html?ip=lksdhfjlk";
 }
 
 function OnChangeNameBtnClick() {
-    GetRandName()
+    GetRandName();
 }
 
 $(document).keydown(function (event) {
