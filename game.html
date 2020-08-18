@@ -31,6 +31,9 @@
 <body onload="threeStart();"></body>
 
 <script>
+    /*var request = GetRequest();
+    console.log(request);*/
+
     function MObject(x, y) {
         this.x = x;
         this.y = y;
@@ -77,7 +80,8 @@
         if ("WebSocket" in window) {
             console.log("WebSocket Available!")
             // 打开一个 web socket
-            ws = new WebSocket("ws://localhost:9001");
+            var request = GetRequest();
+            ws = new WebSocket("ws://localhost:" + request['ip']);
             ws.binaryType = "arraybuffer";
 
             ws.onopen = function () {
@@ -176,9 +180,6 @@
         initObject();
         animation();
     }
-
-    /*var x = 0;
-    var y = 0;*/
 
     function animation() {
         o.UpdateMesh();
