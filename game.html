@@ -23,62 +23,200 @@
     <script src="https://cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
     <!-- 加载 Bootstrap 的所有 JavaScript 插件。你也可以根据需要只加载单个插件。 -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js"></script>
+    <script src="js/common.js"></script>
     <script src="js/three.js"></script>
 
 </head>
 
-<body>
+<body onload="threeStart();"></body>
 
-
-</body>
-<script src="js/custom-game.js"></script>
 <script>
-    var scene = new THREE.Scene();
-    var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    function MObject(x, y) {
+        this.x = x;
+        this.y = y;
+        this.mesh = null;
+    }
 
-    var renderer = new THREE.WebGLRenderer();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
+    MObject.prototype.GetX = function () {
+        return this.x;
+    }
 
-    var geo_ground = new THREE.BoxGeometry(10, 10, 1);
-    var mtr_ground = new THREE.MeshBasicMaterial({ color: 0xffffff });
-    var ground = new THREE.Mesh(geo_ground, mtr_ground);
-    scene.add(ground);
+    MObject.prototype.GetY = function () {
+        return this.y;
+    }
 
-    var geo_me = new THREE.BoxGeometry(1, 1, 1);
-    var mtr_me = new THREE.MeshBasicMaterial({ color: 0x66ccff });
-    var me = new THREE.Mesh(geo_me, mtr_me);
-    scene.add(me);
+    MObject.prototype.GetMesh = function () {
+        return this.mesh;
+    }
 
-    camera.position.z = 5;
+    MObject.prototype.InitMesh = function () {
+        this.mesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshBasicMaterial({ color: 0x66CCFF }));
+        this.mesh.position.z = 1;
+    }
 
-    var me_x = 0;
-    var me_y = 0;
+    MObject.prototype.Update = function (x, y) {
+        this.x = x;
+        this.y = y;
+    }
 
-    var animate = function () {
-        requestAnimationFrame(animate);
+    MObject.prototype.UpdateMesh = function () {
+        this.mesh.position.x = this.x;
+        this.mesh.position.y = this.y;
+    }
 
-        me.position.x = me_x;
-        me.position.y = me_y;
+    var o = new MObject(0, 0);
+    o.InitMesh();
 
+    var oMap = new Map();
+
+    /****************************************************************************************************************************
+     WebSocket
+     ****************************************************************************************************************************/
+    var ws
+    function WebSocketStart() {
+        if ("WebSocket" in window) {
+            console.log("WebSocket Available!")
+            // 打开一个 web socket
+            ws = new WebSocket("ws://localhost:9001");
+            ws.binaryType = "arraybuffer";
+
+            ws.onopen = function () {
+                // Web Socket 已连接上，使用 send() 方法发送数据
+                //ws.send("发送数据");
+            };
+
+            ws.onmessage = function (evt) {
+                var received_msg = evt.data.slice(4);
+                var uint8_msg = new Uint8Array(received_msg);
+                var decodedString = String.fromCharCode.apply(null, uint8_msg);
+
+                var data = JSON.parse(decodedString);
+
+                if (typeof (data.users) != undefined) {
+                    o.Update(data.users[0].X, data.users[0].Y);
+
+                    if (data.users.length > 1) {
+                        for (var i = 1; i < data.users.length; i++) {
+                            if (oMap.has(data.users[i].Id)) {
+                                oMap.get(data.users[i].Id).Update(data.users[i].X, data.users[i].Y);
+                            } else {
+                                var temp = new MObject(data.users[i].X, data.users[i].Y);
+                                temp.InitMesh();
+                                if (typeof (scene) != undefined) {
+                                    oMap.set(data.users[i].Id, temp);
+                                    scene.add(temp.GetMesh());
+                                }
+                            }
+                        }
+                    }
+                }
+                if (typeof (data.outter) != undefined) {
+                    for (var i = 0; i < data.outter.length; i++) {
+                        if (typeof (scene) != undefined && oMap.has(data.outter[i])) {
+                            scene.remove(oMap.get(data.outter[i]).GetMesh());
+                            oMap.delete(data.outter[i]);
+                        }
+                    }
+                }
+                //console.log(data)
+            };
+
+            ws.onclose = function () {
+                // 关闭 websocket
+                console.log("Connection Close...");
+            };
+        }
+        else {
+            // 浏览器不支持 WebSocket
+            console.log("WebSocket not available!");
+        }
+    }
+
+    /****************************************************************************************************************************
+     Three.js
+     ****************************************************************************************************************************/
+    var renderer;
+    function initThree() {
+        renderer = new THREE.WebGLRenderer();  // 创建渲染器
+        renderer.setSize(window.innerWidth, window.innerHeight);  // 设置长度和宽度
+        document.body.appendChild(renderer.domElement);  // 添加到canvas-frame
+
+    }
+
+    var camera;  // 摄像机
+    function initCamera() {
+        //camera = new THREE.OrthographicCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera = new THREE.OrthographicCamera(window.innerWidth / - 20, window.innerWidth / 20, window.innerHeight / 20, window.innerHeight / - 20, 0.1, 100);
+        camera.position.x = 0;
+        camera.position.y = 0;
+        camera.position.z = 5;
+    }
+
+    var scene;  // 场景
+    function initScene() {
+        scene = new THREE.Scene();
+    }
+
+    var mesh;  // 创建模型
+    function initObject() {
+        var geometry = new THREE.BoxGeometry(100, 100, 1);
+        var material = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });  //THREE.MeshLambertMaterial高级材质，构造类似木头、石头等不光滑的表面
+        mesh = new THREE.Mesh(geometry, material);  // 网状 Mesh的构造函数是这样的：Mesh( geometry, material ) geometry是它的形状，material是它的材质
+        mesh.position = new THREE.Vector3(0, 0, 0);
+        scene.add(mesh);
+
+        scene.add(o.GetMesh());
+    }
+
+    function threeStart() {
+        WebSocketStart();
+        initThree();
+        initCamera();
+        initScene();
+        initObject();
+        animation();
+    }
+
+    /*var x = 0;
+    var y = 0;*/
+
+    function animation() {
+        o.UpdateMesh();
+        console.log(oMap);
+        oMap.forEach(function (v, k, m) {
+            v.UpdateMesh();
+        });
         renderer.render(scene, camera);
-    };
+        requestAnimationFrame(animation);
+    }
+
+    function SendMoveMsg(direct) {
+        var h = concatenate(Uint8Array, getUint8Bytes(0), getUint8Bytes(0), getUint8Bytes(1), getUint8Bytes(0));
+        h.reverse()
+        var head = concatenate(Uint8Array, getUint16Bytes(1), getUint16Bytes(8));
+        head.reverse();
+        var value = getUint32Bytes(direct);
+        value.reverse();
+
+        var packet = concatenate(Uint8Array, h, head, value);
+        ws.send(packet);
+        console.log(packet);
+    }
 
     $(document).keydown(function (event) {
         if (event.keyCode == 13) {
             console.log("you pressed enter!")
         } else if (event.keyCode == 87) {
-            me_y++; // w
+            SendMoveMsg(0); // w
         } else if (event.keyCode == 68) {
-            me_x++; // d
+            SendMoveMsg(90); // d
         } else if (event.keyCode == 83) {
-            me_y--; // s
+            SendMoveMsg(180); // s
         } else if (event.keyCode == 65) {
-            me_x--; // a
+            SendMoveMsg(270); // a
         }
     });
 
-    animate();
 </script>
 
 </html>
