@@ -37,6 +37,7 @@
     console.log(request);*/
 
     function MObject(x, y) {
+        this.id = 0;
         this.x = x;
         this.y = y;
         this.mesh = null;
@@ -50,12 +51,27 @@
         return this.y;
     }
 
+    MObject.prototype.SetID = function (id) {
+        this.id = id;
+    }
+
+    MObject.prototype.IsOut = function () {
+        if (this.x > 50 || this.x < -50) {
+            return true
+        }
+        if (this.y > 50 || this.y < -50) {
+            return true
+        }
+
+        return false
+    }
+
     MObject.prototype.GetMesh = function () {
         return this.mesh;
     }
 
-    MObject.prototype.InitMesh = function () {
-        this.mesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshBasicMaterial({ color: 0x66CCFF }));
+    MObject.prototype.InitMesh = function (size) {
+        this.mesh = new THREE.Mesh(new THREE.BoxGeometry(size, size, size), new THREE.MeshBasicMaterial({ color: 0x66CCFF }));
         this.mesh.position.z = 1;
     }
 
@@ -70,9 +86,10 @@
     }
 
     var o = new MObject(0, 0);
-    o.InitMesh();
+    o.InitMesh(1);
 
     var oMap = new Map();
+    var bMap = new Map();
 
     /****************************************************************************************************************************
      WebSocket
@@ -107,7 +124,7 @@
                                 oMap.get(data.users[i].Id).Update(data.users[i].X, data.users[i].Y);
                             } else {
                                 var temp = new MObject(data.users[i].X, data.users[i].Y);
-                                temp.InitMesh();
+                                temp.InitMesh(1);
                                 if (typeof (scene) != 'undefined') {
                                     oMap.set(data.users[i].Id, temp);
                                     scene.add(temp.GetMesh());
@@ -126,6 +143,22 @@
                 }
                 if (typeof (data.time) != 'undefined') {
                     document.getElementById('time').innerHTML = data.time
+                }
+
+                if (typeof (data.bullets) != 'undefined' && data.bullets != null) {
+                    for (var i = 1; i < data.bullets.length; i++) {
+                        if (bMap.has(data.bullets[i].Id)) {
+                            bMap.get(data.bullets[i].Id).Update(data.bullets[i].Pos.X, data.bullets[i].Pos.Y);
+                        } else {
+                            var temp = new MObject(data.bullets[i].Pos.X, data.bullets[i].Pos.Y);
+                            temp.InitMesh(0.2);
+                            temp.SetID(data.bullets[i].Id);
+                            if (typeof (scene) != 'undefined') {
+                                bMap.set(data.bullets[i].Id, temp);
+                                scene.add(temp.GetMesh());
+                            }
+                        }
+                    }
                 }
                 //console.log(data)
             };
@@ -192,6 +225,14 @@
         oMap.forEach(function (v, k, m) {
             v.UpdateMesh();
         });
+        
+        for (let item of bMap.keys()) {
+            bMap.UpdateMesh();
+            if(item.IsOut()) {
+                scene.remove(item.GetMesh());
+                delete bMap[item.id];
+            }
+        }
         renderer.render(scene, camera);
         requestAnimationFrame(animation);
     }
