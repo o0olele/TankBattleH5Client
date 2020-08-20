@@ -28,7 +28,9 @@
 
 </head>
 
-<body onload="threeStart();"></body>
+<body onload="threeStart();">
+    <div id="time">Description</div>
+</body>
 
 <script>
     /*var request = GetRequest();
@@ -93,10 +95,10 @@
                 var received_msg = evt.data.slice(4);
                 var uint8_msg = new Uint8Array(received_msg);
                 var decodedString = String.fromCharCode.apply(null, uint8_msg);
-
+                console.log(decodedString)
                 var data = JSON.parse(decodedString);
 
-                if (typeof (data.users) != undefined) {
+                if (typeof (data.users) != 'undefined') {
                     o.Update(data.users[0].X, data.users[0].Y);
 
                     if (data.users.length > 1) {
@@ -106,7 +108,7 @@
                             } else {
                                 var temp = new MObject(data.users[i].X, data.users[i].Y);
                                 temp.InitMesh();
-                                if (typeof (scene) != undefined) {
+                                if (typeof (scene) != 'undefined') {
                                     oMap.set(data.users[i].Id, temp);
                                     scene.add(temp.GetMesh());
                                 }
@@ -114,13 +116,16 @@
                         }
                     }
                 }
-                if (typeof (data.outter) != undefined) {
+                if (typeof (data.outter) != 'undefined') {
                     for (var i = 0; i < data.outter.length; i++) {
                         if (typeof (scene) != undefined && oMap.has(data.outter[i])) {
                             scene.remove(oMap.get(data.outter[i]).GetMesh());
                             oMap.delete(data.outter[i]);
                         }
                     }
+                }
+                if (typeof (data.time) != 'undefined') {
+                    document.getElementById('time').innerHTML = data.time
                 }
                 //console.log(data)
             };
@@ -183,7 +188,7 @@
 
     function animation() {
         o.UpdateMesh();
-        console.log(oMap);
+        //console.log(oMap);
         oMap.forEach(function (v, k, m) {
             v.UpdateMesh();
         });
@@ -204,16 +209,32 @@
         console.log(packet);
     }
 
+    function SendShotMsg(direct) {
+        var h = concatenate(Uint8Array, getUint8Bytes(0), getUint8Bytes(0), getUint8Bytes(1), getUint8Bytes(0));
+        h.reverse()
+        var head = concatenate(Uint8Array, getUint16Bytes(3), getUint16Bytes(8));
+        head.reverse();
+
+        var packet = concatenate(Uint8Array, h, head);
+        ws.send(packet);
+        console.log(packet);
+    }
+
+    var direct = 0
     $(document).keydown(function (event) {
         if (event.keyCode == 13) {
-            console.log("you pressed enter!")
+            SendShotMsg(direct)
         } else if (event.keyCode == 87) {
+            direct = 0
             SendMoveMsg(0); // w
         } else if (event.keyCode == 68) {
+            direct = 90
             SendMoveMsg(90); // d
         } else if (event.keyCode == 83) {
+            direct = 180
             SendMoveMsg(180); // s
         } else if (event.keyCode == 65) {
+            direct = 270
             SendMoveMsg(270); // a
         }
     });

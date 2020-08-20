@@ -3,6 +3,19 @@ body {
 }
 
 canvas { 
-    width: 100%; 
-    height: 100% 
+    width: 800px; 
+    height: 800px; 
+}
+
+.game-container {
+
+}
+
+#time {
+    position: absolute;
+    top: 10px;
+    width: 100%;
+    text-align: center;
+    z-index: 100;
+    display:block;
 }
