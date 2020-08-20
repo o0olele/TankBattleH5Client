@@ -86,7 +86,7 @@
     }
 
     var o = new MObject(0, 0);
-    o.InitMesh(1);
+    o.InitMesh(2);
 
     var oMap = new Map();
     var bMap = new Map();
@@ -124,7 +124,7 @@
                                 oMap.get(data.users[i].Id).Update(data.users[i].X, data.users[i].Y);
                             } else {
                                 var temp = new MObject(data.users[i].X, data.users[i].Y);
-                                temp.InitMesh(1);
+                                temp.InitMesh(2);
                                 if (typeof (scene) != 'undefined') {
                                     oMap.set(data.users[i].Id, temp);
                                     scene.add(temp.GetMesh());
@@ -151,7 +151,7 @@
                             bMap.get(data.bullets[i].Id).Update(data.bullets[i].Pos.X, data.bullets[i].Pos.Y);
                         } else {
                             var temp = new MObject(data.bullets[i].Pos.X, data.bullets[i].Pos.Y);
-                            temp.InitMesh(2);
+                            temp.InitMesh(0.5);
                             temp.SetID(data.bullets[i].Id);
                             if (typeof (scene) != 'undefined') {
                                 bMap.set(data.bullets[i].Id, temp);
