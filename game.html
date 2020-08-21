@@ -106,7 +106,7 @@
             console.log("WebSocket Available!")
             // 打开一个 web socket
             var request = GetRequest();
-            ws = new WebSocket("ws://127.0.0.1:" + request['ip']);
+            ws = new WebSocket("ws://192.168.98.89:" + request['ip']);
             ws.binaryType = "arraybuffer";
 
             ws.onopen = function () {
@@ -253,16 +253,6 @@
             v.UpdateMesh();
         });
 
-        /*for (let item of bMap.keys()) {
-            var temp = bMap.get(item);
-            if (typeof (temp) != 'undefined') {
-                temp.UpdateMesh();
-                if (temp.IsOut()) {
-                    scene.remove(temp.GetMesh());
-                    delete bMap[temp.id];
-                }
-            }
-        }*/
         renderer.render(scene, camera);
         requestAnimationFrame(animation);
     }
@@ -291,7 +281,7 @@
         console.log(packet);
     }
 
-    var direct = 0
+    /*var  = 0
     $(document).keydown(function (event) {
         if (event.keyCode == 13) {
             SendShotMsg(direct)
@@ -308,7 +298,80 @@
             direct = 270
             SendMoveMsg(270); // a
         }
-    });
+    });*/
+
+    var keyCodeArry = [];
+    document.onkeydown = function (ev) {
+        var oEvent = ev || event;
+        keyCode = oEvent.keyCode;
+        keyCodeArry = addKeyCodeArry(keyCode, keyCodeArry);
+        console.log(keyCodeArry);
+    }
+    document.onkeyup = function (ev) {
+        var oEvent = ev || event;
+        keyCode = oEvent.keyCode;
+        keyCodeArry = deletKeyCodeArry(keyCode, keyCodeArry);
+        console.log(keyCodeArry);
+    }
+    function addKeyCodeArry(num, arr) {
+        var check = 0;
+        for (var i = 0; i < arr.length; i++) {
+            if (arr[i] == num) {
+                check = 1;
+            }
+        }
+        if (check == 0) {
+            arr.push(num);
+        }
+        return arr;
+    }
+    function deletKeyCodeArry(num, arr) {
+        for (var i = 0; i < arr.length; i++) {
+            if (arr[i] == num) {
+                arr.splice(i, 1);
+            }
+        }
+        return arr;
+    }
+
+    function sendCmd() {
+        var shot = false;
+        var move = false;
+        var direct = 0;
+        if (keyCodeArry.length > 0) {
+            for (let item of keyCodeArry) {
+                if (item == 13) {
+                    shot = true;
+                }
+                else if (item == 87) {
+                    move = true;
+                    direct = 0;
+                }
+                else if (item == 68) {
+                    move = true;
+                    direct = 90;
+                }
+                else if (item == 83) {
+                    move = true;
+                    direct = 180;
+                }
+                else if (item == 65) {
+                    move = true;
+                    direct = 270;
+                }
+            }
+
+            if (shot)
+                SendShotMsg(direct);
+            if (move)
+                SendMoveMsg(direct);
+        }
+
+
+    }
+
+    var timer = setInterval(sendCmd, 20);
+
 
 </script>
 
