@@ -19,3 +19,14 @@ canvas {
     z-index: 100;
     display:block;
 }
+
+#hp {
+    position: absolute;
+    top: 60px;
+    left: 10px;
+    width: 100%;
+    text-align: center;
+    z-index: 100;
+    color: brown;
+    display:block;
+}

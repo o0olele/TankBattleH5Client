@@ -30,6 +30,7 @@
 
 <body onload="threeStart();">
     <div id="time">Description</div>
+    <div id="hp">HP</div>
 </body>
 
 <script>
@@ -106,7 +107,7 @@
             console.log("WebSocket Available!")
             // 打开一个 web socket
             var request = GetRequest();
-            ws = new WebSocket("ws://127.0.0.1:" + request['ip']);
+            ws = new WebSocket("ws://192.168.98.89:" + request['ip']);
             ws.binaryType = "arraybuffer";
 
             ws.onopen = function () {
@@ -123,6 +124,7 @@
 
                 if (typeof (data.users) != 'undefined') {
                     o.Update(data.users[0].X, data.users[0].Y);
+                    document.getElementById("hp").innerHTML = "HP:"+ data.users[0].HP;
 
                     if (data.users.length > 1) {
                         for (var i = 1; i < data.users.length; i++) {
