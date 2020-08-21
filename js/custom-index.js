@@ -1,4 +1,4 @@
-const httpURL = "http://localhost"
+const httpURL = "http://192.168.96.165"
 const httpGetName = "/getname"
 const httpGetRoom = "/getroom"
 const htmlDomInputID = "inputNameID"

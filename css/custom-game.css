@@ -7,10 +7,6 @@ canvas {
     height: 800px; 
 }
 
-.game-container {
-
-}
-
 #time {
     position: absolute;
     top: 10px;
