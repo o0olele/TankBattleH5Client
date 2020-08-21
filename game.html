@@ -188,9 +188,8 @@
                 }
 
                 if (typeof (data.end) != 'undefined') {
-                    $.alerts.alert("游戏结束", "温馨提示", "确定", function () {
-                        location.href = "index.html"
-                    });
+
+                    if (confirm("游戏结束！点击确定回到主界面。")) { location.href = "index.html"; }
                 }
                 //console.log(data)
             };
