@@ -106,7 +106,7 @@
             console.log("WebSocket Available!")
             // 打开一个 web socket
             var request = GetRequest();
-            ws = new WebSocket("ws://192.168.98.89:" + request['ip']);
+            ws = new WebSocket("ws://127.0.0.1:" + request['ip']);
             ws.binaryType = "arraybuffer";
 
             ws.onopen = function () {
@@ -118,7 +118,7 @@
                 var received_msg = evt.data.slice(4);
                 var uint8_msg = new Uint8Array(received_msg);
                 var decodedString = String.fromCharCode.apply(null, uint8_msg);
-                console.log(decodedString)
+                // console.log(decodedString)
                 var data = JSON.parse(decodedString);
 
                 if (typeof (data.users) != 'undefined') {
@@ -281,24 +281,15 @@
         console.log(packet);
     }
 
-    /*var  = 0
-    $(document).keydown(function (event) {
-        if (event.keyCode == 13) {
-            SendShotMsg(direct)
-        } else if (event.keyCode == 87) {
-            direct = 0
-            SendMoveMsg(0); // w
-        } else if (event.keyCode == 68) {
-            direct = 90
-            SendMoveMsg(90); // d
-        } else if (event.keyCode == 83) {
-            direct = 180
-            SendMoveMsg(180); // s
-        } else if (event.keyCode == 65) {
-            direct = 270
-            SendMoveMsg(270); // a
-        }
-    });*/
+    function SendHeartMsg() {
+        var h = concatenate(Uint8Array, getUint8Bytes(0), getUint8Bytes(0), getUint8Bytes(1), getUint8Bytes(0));
+        h.reverse()
+        var head = concatenate(Uint8Array, getUint16Bytes(4), getUint16Bytes(8));
+        head.reverse();
+        var packet = concatenate(Uint8Array, h, head);
+        ws.send(packet);
+        console.log(packet);
+    }
 
     var keyCodeArry = [];
     document.onkeydown = function (ev) {
@@ -371,6 +362,7 @@
     }
 
     var timer = setInterval(sendCmd, 20);
+    var timerHB = setInterval(SendHeartMsg, 500);
 
 
 </script>
