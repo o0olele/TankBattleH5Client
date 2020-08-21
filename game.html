@@ -107,12 +107,13 @@
             console.log("WebSocket Available!")
             // 打开一个 web socket
             var request = GetRequest();
-            ws = new WebSocket("ws://192.168.98.89:" + request['ip']);
+            ws = new WebSocket("ws://localhost:" + request['ip']);
             ws.binaryType = "arraybuffer";
 
             ws.onopen = function () {
                 // Web Socket 已连接上，使用 send() 方法发送数据
                 //ws.send("发送数据");
+                SendTokenMsg(request['id']);
             };
 
             ws.onmessage = function (evt) {
@@ -124,7 +125,7 @@
 
                 if (typeof (data.users) != 'undefined') {
                     o.Update(data.users[0].X, data.users[0].Y);
-                    document.getElementById("hp").innerHTML = "HP:"+ data.users[0].HP;
+                    document.getElementById("hp").innerHTML = "HP:" + data.users[0].HP;
 
                     if (data.users.length > 1) {
                         for (var i = 1; i < data.users.length; i++) {
@@ -184,6 +185,12 @@
                         scene.remove(tt.GetMesh());
                         delete bMap[item];
                     }
+                }
+
+                if (typeof (data.end) != 'undefined') {
+                    $.alerts.alert("游戏结束", "温馨提示", "确定", function () {
+                        location.href = "index.html"
+                    });
                 }
                 //console.log(data)
             };
@@ -257,6 +264,19 @@
 
         renderer.render(scene, camera);
         requestAnimationFrame(animation);
+    }
+
+    function SendTokenMsg(id) {
+        var h = concatenate(Uint8Array, getUint8Bytes(0), getUint8Bytes(0), getUint8Bytes(1), getUint8Bytes(0));
+        h.reverse()
+        var head = concatenate(Uint8Array, getUint16Bytes(0), getUint16Bytes(8));
+        head.reverse();
+        var value = getUint32Bytes(id);
+        value.reverse();
+
+        var packet = concatenate(Uint8Array, h, head, value);
+        ws.send(packet);
+        console.log(packet);
     }
 
     function SendMoveMsg(direct) {

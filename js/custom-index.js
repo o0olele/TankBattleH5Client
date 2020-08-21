@@ -7,14 +7,17 @@ const htmlDomInputID = "inputNameID"
 /****************************************************************************************************************************
   http
  ****************************************************************************************************************************/
+var id = 0;
 function GetRandName() {
     $.ajax({
         url: httpURL + httpGetName,
         type: 'GET',
         data: { "DeviceId": "sgdgsd24sf", "Ip": "sd4f5sd4f" },
         success: function (data) {
-            console.log(data)
-            UpdateNameInput(htmlDomInputID, data.id);
+            var j = JSON.parse(data);
+            console.log(j);
+            id = j.id;
+            UpdateNameInput(htmlDomInputID, j.id);
         },
         error: function () {
             console.log("Get Rand Name Failed!");
@@ -28,7 +31,7 @@ function GetRoom() {
         type: 'GET',
         success: function (data) {
             console.log(data);
-            location.href = "game.html?ip=" + data;
+            location.href = "game.html?ip=" + data + "&id=" + id;
         },
         error: function () {
             console.log("Get Rand Name Failed!");
