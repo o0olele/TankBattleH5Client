@@ -107,7 +107,7 @@
             console.log("WebSocket Available!")
             // 打开一个 web socket
             var request = GetRequest();
-            ws = new WebSocket("ws://localhost:" + request['ip']);
+            ws = new WebSocket("ws://192.168.96.165:" + request['ip']);
             ws.binaryType = "arraybuffer";
 
             ws.onopen = function () {
